@@ -123,12 +123,15 @@ class EventController extends Controller
         $endTime = Carbon::parse($request->end);
         $count = $request->count;
         
-        
+        if($count > 99 || $count < 1) {
+            return ResponseFormatter::error("Tidak boleh kurang dari satu atau lebih dari 99");
+        }
+
         if($recurrence){
             if($request->count == 0 || $request->count == null || $request->count == '') {
                 $date_until = Carbon::parse($request->date_until);
                 if ($date_until->lt($startTime)) {
-                    return ResponseFormatter::error($date_until, "Date until must be greater than start date");
+                    return ResponseFormatter::error($date_until, "Tanggal selesai harus lebih dari tanggal mulai");
                 } else if ($request->recurrence == 'daily') {
                     $count = $date_until->diffInDays($startTime) + 1;
                 } else if ($request->recurrence == 'weekly') {
@@ -268,7 +271,7 @@ class EventController extends Controller
                         if($request->count == 0 || $request->count == null) {
                             $date_until = Carbon::parse($request->date_until);
                             if ($date_until->lt($startTime)) {
-                                return ResponseFormatter::error($date_until, "Date until must be greater than start date");
+                                return ResponseFormatter::error($date_until, "Tanggal selesai harus lebih dari tanggal mulai");
                             } else if ($request->recurrence == 'daily') {
                                 $count = $date_until->diffInDays($startTime) + 1;
                             } else if ($request->recurrence == 'weekly') {
@@ -338,7 +341,7 @@ class EventController extends Controller
                         if($request->count == 0 || $request->count == null || $request->count == '') {
                             $date_until = Carbon::parse($request->date_until);
                             if ($date_until->lt($startTime)) {
-                                return ResponseFormatter::error($date_until, "Date until must be greater than start date");
+                                return ResponseFormatter::error($date_until, "Tanggal selesai harus lebih dari tanggal mulai");
                             } else if ($request->recurrence == 'daily') {
                                 $count = $date_until->diffInDays($startTime) + 1;
                             } else if ($request->recurrence == 'weekly') {
@@ -419,14 +422,14 @@ class EventController extends Controller
         $data = Event::find($id);
         if($data) {
             if($request->allEvent == 1) {
-                $dataAllEvent = Event::where('recurring_id', $data->recurring_id)->where('start', '>=', $data->start)->get();
-                foreach($dataAllEvent as $dataAllEvent) {
+                $dataAllEvents = Event::where('recurring_id', $data->recurring_id)->get();
+                foreach($dataAllEvents as $dataAllEvent) {
                     $dataAllEvent->delete();
                 }
-                return ResponseFormatter::success($id);
+                return ResponseFormatter::success($dataAllEvents, "All event deleted");
             } else {
                 $data->delete();
-                return ResponseFormatter::success($id);
+                return ResponseFormatter::success($id, "Event deleted");
             }
         } else {
             return ResponseFormatter::error("Data not found");
