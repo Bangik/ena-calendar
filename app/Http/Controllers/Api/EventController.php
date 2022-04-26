@@ -418,15 +418,15 @@ class EventController extends Controller
     {
         $data = Event::find($id);
         if($data) {
-            if($request->allEvent == true) {
+            if($request->allEvent == 1) {
                 $dataAllEvent = Event::where('recurring_id', $data->recurring_id)->where('start', '>=', $data->start)->get();
                 foreach($dataAllEvent as $dataAllEvent) {
                     $dataAllEvent->delete();
                 }
-                return ResponseFormatter::success();
+                return ResponseFormatter::success($id);
             } else {
                 $data->delete();
-                return ResponseFormatter::success();
+                return ResponseFormatter::success($id);
             }
         } else {
             return ResponseFormatter::error("Data not found");
