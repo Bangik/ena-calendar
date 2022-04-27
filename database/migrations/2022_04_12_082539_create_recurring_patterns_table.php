@@ -16,6 +16,7 @@ class CreateRecurringPatternsTable extends Migration
         Schema::create('recurring_patterns', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('type', 50);
+            $table->string('tipe', 50);
             $table->integer('count')->nullable();
             $table->dateTime('date')->nullable();
             $table->timestamps();

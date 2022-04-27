@@ -12,6 +12,7 @@ class RecurringPattern extends Model
 
     protected $fillable = [
         'type',
+        'tipe',
         'count',
         'date',
     ];

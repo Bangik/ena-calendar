@@ -24,7 +24,7 @@ class EventController extends Controller
     {
         if(request()->has('month')) {
             $month = request()->get('month');
-            $data = Event::with('category')->get()->groupBy(function ($d) {
+            $data = Event::with('category','recurring')->get()->groupBy(function ($d) {
                 return Carbon::parse($d->start)->format('m-Y');
             });
             $month = $month < 10 ? '0'.$month : $month;
@@ -40,7 +40,7 @@ class EventController extends Controller
             $end = date_parse(request()->get('end'));
             $end = Carbon::create($end['year'], $end['month'], $end['day']);
 
-            $data = Event::with('category')->whereBetween('start', [$start, $end])->get();
+            $data = Event::with('category','recurring')->whereBetween('start', [$start, $end])->get();
 
             if($data->count() > 0) {
                 return ResponseFormatter::success($data);
@@ -49,7 +49,7 @@ class EventController extends Controller
             }
 
         } else {
-            $data = Event::with('category')->get();
+            $data = Event::with('category','recurring')->get();
 
             if($data->count() > 0) {
                 return ResponseFormatter::success($data);
@@ -105,16 +105,20 @@ class EventController extends Controller
 
         $recurrences = [
             'daily'     => [
-                'function'  => 'addDay'
+                'function'  => 'addDay',
+                'tipe'      => 'Harian',
             ],
             'weekly'    => [
-                'function'  => 'addWeek'
+                'function'  => 'addWeek',
+                'tipe'      => 'Mingguan',
             ],
             'monthly'    => [
-                'function'  => 'addMonth'
+                'function'  => 'addMonth',
+                'tipe'      => 'Bulanan',
             ],
             'yearly'    => [
-                'function'  => 'addYear'
+                'function'  => 'addYear',
+                'tipe'      => 'Tahunan',
             ],
         ];
 
@@ -123,11 +127,9 @@ class EventController extends Controller
         $endTime = Carbon::parse($request->end);
         $count = $request->count;
         
-        if($count > 99 || $count < 1) {
-            return ResponseFormatter::error("Tidak boleh kurang dari satu atau lebih dari 99");
-        }
-
+        
         if($recurrence){
+            
             if($request->count == 0 || $request->count == null || $request->count == '') {
                 $date_until = Carbon::parse($request->date_until);
                 if ($date_until->lt($startTime)) {
@@ -142,6 +144,9 @@ class EventController extends Controller
                     $count = $date_until->diffInYears($startTime) + 1;
                 }
             } else {
+                if($count > 99 || $count < 1) {
+                    return ResponseFormatter::error("Tidak boleh kurang dari satu atau lebih dari 99");
+                }
                 $count = $request->count - 1;
             }
 
@@ -149,6 +154,7 @@ class EventController extends Controller
                 $data = RecurringPattern::create([
                     'id' => (string) Str::uuid(),
                     'type' => $request->recurrence,
+                    'tipe' => $recurrence['tipe'],
                     'count' => $count,
                     'date' => $request->date_until,
                 ]);
@@ -237,16 +243,20 @@ class EventController extends Controller
         
         $recurrences = [
             'daily'     => [
-                'function'  => 'addDay'
+                'function'  => 'addDay',
+                'tipe'      => 'Harian',
             ],
             'weekly'    => [
-                'function'  => 'addWeek'
+                'function'  => 'addWeek',
+                'tipe'      => 'Mingguan',
             ],
             'monthly'    => [
-                'function'  => 'addMonth'
+                'function'  => 'addMonth',
+                'tipe'      => 'Bulanan',
             ],
             'yearly'    => [
-                'function'  => 'addYear'
+                'function'  => 'addYear',
+                'tipe'      => 'Tahunan',
             ],
         ];
             
@@ -267,7 +277,7 @@ class EventController extends Controller
                     if($dataCheck->type != $request->recurrence) {
                         $dataCheck->delete();
                         $count = $request->count;
-                        
+
                         if($request->count == 0 || $request->count == null) {
                             $date_until = Carbon::parse($request->date_until);
                             if ($date_until->lt($startTime)) {
@@ -282,12 +292,16 @@ class EventController extends Controller
                                 $count = $date_until->diffInYears($startTime) + 1;
                             }
                         } else {
+                            if($count > 99 || $count < 1) {
+                                return ResponseFormatter::error("Tidak boleh kurang dari satu atau lebih dari 99");
+                            }
                             $count = $request->count - 1;
                         }
         
                         $dataRecc = RecurringPattern::create([
                             'id' => (string) Str::uuid(),
                             'type' => $request->recurrence,
+                            'tipe' => $recurrence['tipe'],
                             'count' => $count,
                             'date' => $request->date_until,
                         ]);
@@ -337,6 +351,10 @@ class EventController extends Controller
         
                 } else {
                     if($recurrence){
+                        if($request->count > 99 || $request->count < 1) {
+                            return ResponseFormatter::error("Tidak boleh kurang dari satu atau lebih dari 99");
+                        }
+
                         $data->delete();
                         if($request->count == 0 || $request->count == null || $request->count == '') {
                             $date_until = Carbon::parse($request->date_until);
@@ -359,6 +377,7 @@ class EventController extends Controller
                             $data = RecurringPattern::create([
                                 'id' => (string) Str::uuid(),
                                 'type' => $request->recurrence,
+                                'tipe' => $recurrence['tipe'],
                                 'count' => $count,
                                 'date' => $request->date_until,
                             ]);
@@ -438,7 +457,24 @@ class EventController extends Controller
 
     public function search(Request $request)
     {
-        $data = Event::where('title', 'like', '%'.$request->search.'%')->get();
+        if($request->search == '') {
+            return ResponseFormatter::error("Search is empty");
+        }
+
+        $data = Event::where('title', 'like', '%'.$request->search.'%')->take(5)->get();
+        if($data) {
+            return ResponseFormatter::success($data);
+        } else {
+            return ResponseFormatter::error("Data not found");
+        }
+    }
+
+    public function show(Request $request, $id)
+    {
+        $data = Event::with(
+            'category',
+            'recurring',
+        )->find($id);
         if($data) {
             return ResponseFormatter::success($data);
         } else {

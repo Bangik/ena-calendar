@@ -16,6 +16,7 @@ class RecurringPatternFactory extends Factory
     {
         return [
             'type' => $this->faker->randomElement(['daily', 'weekly', 'monthly', 'yearly']),
+            'tipe' => $this->faker->randomElement(['Harian', 'Mingguan', 'Bulanan', 'Tahunan']),
             'count' => $this->faker->numberBetween(1, 10),
             'date' => $this->faker->dateTimeBetween('-1 year', '+1 year'),
         ];
