@@ -11,6 +11,7 @@ use App\Http\Requests\EventRequest;
 use App\Models\Category;
 use App\Models\RecurringPattern;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class EventController extends Controller
@@ -127,12 +128,17 @@ class EventController extends Controller
         $endTime = Carbon::parse($request->end);
         $count = $request->count;
         
-        
+        if($endTime->lt($startTime)) {
+            return ResponseFormatter::error("Tanggal selesai harus lebih dari tanggal mulai");
+        }
+
         if($recurrence){
             
             if($request->count == 0 || $request->count == null || $request->count == '') {
                 $date_until = Carbon::parse($request->date_until);
-                if ($date_until->lt($startTime)) {
+                if($request->date_until == null || $request->date_until == '') {
+                    return ResponseFormatter::error("Sampai berapa kali atau tanggal selesai harus diisi");
+                } else if ($date_until->lt($startTime)) {
                     return ResponseFormatter::error($date_until, "Tanggal selesai harus lebih dari tanggal mulai");
                 } else if ($request->recurrence == 'daily') {
                     $count = $date_until->diffInDays($startTime) + 1;
@@ -148,6 +154,10 @@ class EventController extends Controller
                     return ResponseFormatter::error("Tidak boleh kurang dari satu atau lebih dari 99");
                 }
                 $count = $request->count - 1;
+            }
+
+            if(!is_numeric($count)) {
+                return ResponseFormatter::error("Jumlah harus di isi");
             }
 
             try {
@@ -266,6 +276,10 @@ class EventController extends Controller
         $startTime = Carbon::parse($request->start);
         $endTime = Carbon::parse($request->end);
         
+        if($endTime->lt($startTime)) {
+            return ResponseFormatter::error("Tanggal selesai harus lebih dari tanggal mulai");
+        }
+
         try {
             if ($data) {
                 if ($request->allEvent == 1) {
@@ -461,7 +475,7 @@ class EventController extends Controller
             return ResponseFormatter::error("Search is empty");
         }
 
-        $data = Event::where('title', 'like', '%'.$request->search.'%')->take(5)->get();
+        $data = Event::where(DB::raw('lower(title)'), 'like', '%' . strtolower($request->search) . '%')->take(10)->get();
         if($data) {
             return ResponseFormatter::success($data);
         } else {
