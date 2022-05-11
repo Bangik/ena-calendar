@@ -66,37 +66,6 @@ class EventController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store2(EventRequest $request)
-    {
-        try {
-            $idCategori = Category::get('id');
-            $idCat = $idCategori[5]->id;
-            $user = User::get('id');
-            $userId = $user[0]->id;
-
-            $data = Event::create([
-                'id' => (string) Str::uuid(),
-                'category_id' => $idCat,
-                'created_by' => $userId,
-                'updated_by' => $userId,
-                'title' => $request->title,
-                'description' => $request->description,
-                'location' => $request->location,
-                'start' => $request->start,
-                'end' => $request->end,
-                'is_active' => 1,
-            ]);
-
-            if($data) {
-                return ResponseFormatter::success($data, 'Data has been created');
-            } else {
-                return ResponseFormatter::error("Failed to create data");
-            }
-        } catch (\Exception $e) {
-            return ResponseFormatter::error($e->getMessage(), 'Server Error', 500);
-        }
-    }
-
     public function store(EventRequest $request)
     {
         // $idCategori = Category::get('id');
@@ -224,24 +193,6 @@ class EventController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update2(EventRequest $request, $id)
-    {
-        $data = Event::find($id);
-        if($data) {
-            $data->title = $request->title;
-            $data->description = $request->description;
-            $data->location = $request->location;
-            $data->start = $request->start;
-            $data->end = $request->end;
-            $data->color = $request->color;
-            $data->is_active = 1;
-            $data->save();
-            return ResponseFormatter::success($data);
-        } else {
-            return ResponseFormatter::error("Data not found");
-        }
-    }
-
     public function update(EventRequest $request, $id){
 
         //declare variabel
