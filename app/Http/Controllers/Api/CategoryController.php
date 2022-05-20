@@ -17,7 +17,7 @@ class CategoryController extends Controller
     public function index()
     {
         // $data = Category::with('getCreatedByUser', 'getUpdatedByUser')->get();
-        $data = Category::all();
+        $data = Category::all()->groupBy('type');
         return ResponseFormatter::success($data);
     }
 
