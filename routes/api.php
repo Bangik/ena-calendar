@@ -29,8 +29,6 @@ Route::get('/categories', [CategoryController::class, 'index']);
 Route::get('/events', [EventController::class, 'index']);
 Route::get('/events/{id}', [EventController::class, 'show']);
 Route::post('/events', [EventController::class, 'store']);
-Route::post('/eventss', [EventController::class, 'store2']);
 Route::put('/events/{id}', [EventController::class, 'update']);
-Route::put('/eventss/{id}', [EventController::class, 'update2']);
 Route::delete('/events/{id}', [EventController::class, 'destroy']);
 Route::post('/events/search', [EventController::class, 'search']);
