@@ -326,7 +326,7 @@ class EventController extends Controller
                                 'id' => (string) Str::uuid(),
                                 'type' => $request->recurrence,
                                 'tipe' => $recurrence['tipe'],
-                                'count' => $count,
+                                'count' => $count + 1,
                                 'date' => $request->date_until,
                             ]);
                 
