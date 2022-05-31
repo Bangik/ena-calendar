@@ -36,10 +36,10 @@ class CategoryController extends Controller
         // $data = file_get_contents("http://ena-calendar.id/api/categories");
         // $data = json_decode($data);
         // dd($data->data);
-        $date_until = Carbon::parse("2022-06-25");
-        $startTime = "2022-04-25";
-        $count = $date_until->diffInMonths($startTime);
-        dd($count + 1);
+        $date_until = Carbon::parse("2022-05-25");
+        $startTime = "2023-05-25";
+        $count = $date_until->diffInYears($startTime);
+        dd($count);
         return view('tes', compact('count'));
 
         

@@ -275,12 +275,34 @@ class EventController extends Controller
                         }
                     }
 
+                    if($data->start != $request->start || $data->end != $request->end) {
+                        $diffInDays = Carbon::parse($data->start)->diffInDays($startTime, false);
+                        $dataOld = Event::where('recurring_id', $data->recurring_id)->get();
+                        foreach($dataOld as $value){
+                            $value->category_id = $request->category_id;
+                            $value->title = $request->title;
+                            $value->description = $request->description;
+                            $value->location = $request->location;
+                            $value->start = Carbon::parse($value->start)->addDays($diffInDays);
+                            $value->end = Carbon::parse($value->end)->addDays($diffInDays);
+
+                            $dateStart = Carbon::parse($value->start)->format('Y-m-d');
+                            $dateEnd = Carbon::parse($value->end)->format('Y-m-d');
+                            $timeStart = Carbon::parse($request->start)->format('H:i:s');
+                            $timeEnd = Carbon::parse($request->end)->format('H:i:s');
+
+                            $value->start = $dateStart.' '.$timeStart;
+                            $value->end = $dateEnd.' '.$timeEnd;
+                            $value->save();
+                        }
+                    }
+
                     $dataFirst = Event::where('recurring_id', $data->recurring_id)->first();
-                    $dateFirstStart = Carbon::parse($dataFirst->start);
-                    $dateFirstEnd = Carbon::parse($dataFirst->end);
                     if (!$dataFirst) {
                         return ResponseFormatter::error("Data not found");
                     }
+                    $dateFirstStart = Carbon::parse($dataFirst->start);
+                    $dateFirstEnd = Carbon::parse($dataFirst->end);
 
                     $dataCheck->delete();
 
