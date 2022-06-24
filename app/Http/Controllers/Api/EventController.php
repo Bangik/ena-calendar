@@ -306,7 +306,7 @@ class EventController extends Controller
 
                     $dataCheck->delete();
 
-                    $count = $this->validateCount($request->count, $request->date_until, $request->recurrence, $startTime);
+                    $count = $this->validateCount($request->count, $request->date_until, $request->recurrence, $dateFirstStart);
 
                     $dataRecc = RecurringPattern::create([
                         'id' => (string) Str::uuid(),
